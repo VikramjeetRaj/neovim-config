@@ -1,0 +1,460 @@
+# Neovim Configuration — Guide
+
+This is the complete guide to this Neovim setup. It's written so that **anyone can follow it**, even if you've never used Neovim or written code. Every technical word is explained in the [Key terms](#key-terms-plain-english-glossary) section, and there's a plain-English [cheat sheet](#quick-reference-how-do-i-do-x) if you just want to get something done quickly.
+
+> **Tip:** To search this document, open it in any Markdown viewer or text editor and press `Ctrl+F` (or `Cmd+F` on Mac), then type what you're looking for — e.g. "search files", "breakpoint", "font", "close buffer".
+
+---
+
+## Contents
+
+1. [What is this?](#what-is-this)
+2. [Key terms (plain-English glossary)](#key-terms-plain-english-glossary)
+3. [How to read the shortcuts](#how-to-read-the-shortcuts)
+4. [Quick reference: how do I do X?](#quick-reference-how-do-i-do-x)
+5. [First-time setup](#first-time-setup)
+6. [Editor behaviour (settings)](#editor-behaviour-settings)
+7. [Keyboard shortcuts (full list)](#keyboard-shortcuts-full-list)
+8. [Running and building code (tasks)](#running-and-building-code-tasks)
+9. [Debugging: how to use](#debugging-how-to-use)
+10. [Plugins and what each one does](#plugins-and-what-each-one-does)
+11. [External tools you need to install](#external-tools-you-need-to-install)
+12. [Nerd Font (JetBrains Mono)](#nerd-font-jetbrains-mono)
+13. [Troubleshooting](#troubleshooting)
+
+---
+
+## What is this?
+
+**Neovim** is a text editor for writing code — think of it like Notepad or Microsoft Word, but built for programmers and controlled mostly with the keyboard instead of the mouse.
+
+By itself Neovim is fairly bare. This configuration file (`init.lua`) adds a set of **plugins** (add-ons) that turn it into a full coding environment for four programming languages: **Go, Java, C/C++, and Lua**. It gives you:
+
+- A colourful, modern look (the *Catppuccin* theme).
+- A **file explorer** sidebar, **tabs** for open files, and a **status bar**.
+- **Autocomplete** and smart code features (jump to definitions, rename, see errors) powered by *language servers*.
+- **Debugging** — run your program step by step to find bugs.
+- A **task runner** to build and run your programs with one shortcut.
+- A **fuzzy finder** to jump to any file or search all your text instantly.
+- **Git** integration to see and manage your code changes.
+
+You do **not** need to understand the `init.lua` file to use any of this. This guide covers everything you need.
+
+**Requirements:** Neovim version **0.11 or newer**, and a [Nerd Font](#nerd-font-jetbrains-mono) so icons display correctly.
+
+---
+
+## Key terms (plain-English glossary)
+
+If a word in this guide is unfamiliar, look it up here.
+
+| Term | What it means |
+|---|---|
+| **Normal mode** | The default state in Neovim where keys are commands (not typing). Press `Esc` to get here. |
+| **Insert mode** | Where you actually type text, like a normal editor. Press `i` to enter it, `Esc` to leave. |
+| **Leader key** | A "prefix" key you press before a shortcut. In this setup it's the **backslash `\`** key (see the note in [shortcuts](#how-to-read-the-shortcuts)). |
+| **Buffer** | An open file. Having "3 buffers open" means 3 files are open. |
+| **Window / split** | A pane on screen. You can split the screen to view two files side by side. |
+| **Status line** | The info bar at the bottom showing the file name, position, and errors. |
+| **File tree / explorer** | A sidebar listing your project's files and folders. |
+| **Gutter** | The narrow strip on the far left, where line numbers and small symbols (errors, git marks) appear. |
+| **LSP (Language Server)** | A background helper that understands your code — it powers autocomplete, error checking, and "jump to definition". |
+| **Autocomplete** | The pop-up list of suggestions as you type. |
+| **Diagnostic** | An error or warning about your code, shown in the gutter and underlined. |
+| **Definition / declaration** | The place in the code where a function or variable was created. "Jump to definition" takes you there. |
+| **Debugging** | Running your program in slow motion so you can pause it and inspect what's happening. |
+| **Breakpoint** | A marker on a line that tells the debugger "pause here". |
+| **Step over / into / out** | While paused: run the next line / go inside a function call / finish the current function. |
+| **REPL** | A prompt where you can type expressions and see their value while debugging. |
+| **Task / task runner** | A saved command (like "build this program") you trigger with a shortcut instead of typing it. |
+| **Fuzzy finder** | A fast search box: type a few letters and it finds matching files or text. |
+| **Hunk (git)** | A single block of changed lines in a file. |
+| **Stage (git)** | Marking a change as ready to be saved into git history. |
+| **Blame (git)** | Showing who last changed a line and when. |
+| **Formatter** | A tool that automatically tidies your code's spacing and layout when you save. |
+| **Nerd Font** | A special font containing extra icon symbols. Without it, icons show as boxes or question marks. |
+| **PATH** | The list of folders your computer searches for installed programs. A tool "on your PATH" can be run from anywhere. |
+| **Homebrew (`brew`)** | A popular app installer for Mac, used in the install commands below. |
+
+---
+
+## How to read the shortcuts
+
+Shortcuts are written using a few conventions:
+
+| Notation | Means | Example |
+|---|---|---|
+| `<leader>` | Your **leader key** — the **backslash `\`** in this setup | `<leader>e` = press `\` then `e` |
+| `<C-x>` | Hold **Ctrl** and press `x` | `<C-\>` = hold Ctrl, press backslash |
+| `<S-x>` | Hold **Shift** and press `x` (a capital letter) | `<S-l>` = Shift + L |
+| `<F5>` | The **F5** function key at the top of the keyboard | |
+| `<CR>` | The **Enter / Return** key | |
+
+**How to type a shortcut like `<leader>ff`:** make sure you're in **Normal mode** (press `Esc` first if unsure), then press the keys in order — `\`, then `f`, then `f` — reasonably quickly.
+
+> **About the leader key:** this config uses the default leader, which is the **backslash `\`**. Many people prefer the **Spacebar**. To switch, add this line near the top of `init.lua`: `vim.g.mapleader = " "`. After that, every `<leader>` shortcut below is triggered with Space instead of backslash.
+
+> **Helpful:** if you press the leader key and pause, a **pop-up menu** (which-key) appears showing every shortcut available next. You don't have to memorise anything.
+
+---
+
+## Quick reference: how do I do X?
+
+The most common things you'll want, in plain English. Full lists are further down.
+
+| I want to… | Press | 
+|---|---|
+| Open a file by typing its name | `<leader>ff` |
+| Search for some text across all files | `<leader>fg` |
+| Reopen a file I had open recently | `<leader>fr` |
+| Show or hide the file explorer sidebar | `<leader>e` |
+| Go to the next / previous open file | `<S-l>` / `<S-h>` |
+| Close the current file | `<leader>x` |
+| Open a terminal | `<C-\>` |
+| See documentation for the thing under my cursor | `K` |
+| Jump to where a function/variable is defined | `gd` |
+| Rename a variable everywhere it's used | `<leader>rn` |
+| See suggested fixes for an error | `<leader>ca` |
+| Read the error message on this line | `<leader>ld` |
+| Jump to the next / previous error | `]d` / `[d` |
+| Run or build my program | `<leader>or`, then pick a task |
+| Start debugging my program | set a breakpoint with `<leader>db`, then `<F5>` |
+| See who last changed this line (git) | `<leader>hb` |
+| Save a change into git (stage it) | `<leader>hs` |
+
+---
+
+## First-time setup
+
+Do this once, in order:
+
+1. **Install a [Nerd Font](#nerd-font-jetbrains-mono)** and set it as your terminal's font (instructions at the bottom). Without this, icons look broken.
+2. **Install the [external tools](#external-tools-you-need-to-install)** for the languages you'll use (for example the Go toolchain, or a Java JDK). You can skip the ones you don't need.
+3. **Open Neovim** by running `nvim` in your terminal. The first launch automatically downloads and installs all the plugins — give it a minute.
+4. Type `:Lazy sync` and press Enter to make sure every plugin finished installing. Then type `:Mason` and press Enter to confirm the code helpers (`gopls`, `clangd`, `jdtls`, `lua_ls`) are installed.
+5. Type `:checkhealth` and press Enter to run a self-test and spot anything missing.
+
+> Commands that start with `:` are typed in Normal mode; a command line appears at the bottom. Press Enter to run, `Esc` to cancel.
+
+---
+
+## Editor behaviour (settings)
+
+These are on automatically — no shortcuts needed. Listed so you know why the editor behaves the way it does.
+
+| Setting | What you'll notice |
+|---|---|
+| Line numbers (absolute + relative) | Numbers down the left; the current line shows its real number, others count distance from it |
+| Always-visible gutter | The left strip never jumps around when errors or git marks appear |
+| Cursor line highlight | The line you're on is subtly highlighted |
+| No line wrapping | Long lines run off-screen instead of wrapping |
+| Smart-case search | Searching is case-insensitive unless you type a capital letter |
+| Persistent undo | You can undo changes **even after closing and reopening** a file |
+| 4-space indentation | Uses 4 spaces (switches to real tabs automatically for Go and Makefiles, which require them) |
+| System clipboard shared | Copy in Neovim, paste in other apps, and vice-versa |
+| Mouse off | The editor is keyboard-only by design |
+| Code folding | You can collapse blocks of code (via Treesitter); everything starts expanded |
+| **Autosave** | Your file saves itself when you leave insert mode, change text, or switch away — like an IDE |
+| **Format on save** | Code is automatically tidied every time it saves |
+
+---
+
+## Keyboard shortcuts (full list)
+
+Grouped by what you're doing. Some shortcuts (marked *code* or *git*) only work while you're in a relevant file.
+
+### Moving between open files (buffers)
+
+| Key | Action |
+|---|---|
+| `<S-l>` | Go to the next open file |
+| `<S-h>` | Go to the previous open file |
+| `<leader>x` | Close the current file |
+
+### File explorer
+
+| Key | Action |
+|---|---|
+| `<leader>e` | Show / hide the file tree sidebar |
+
+### Search and find things (fuzzy finder)
+
+| Key | Action |
+|---|---|
+| `<leader>ff` | Find a file by name |
+| `<leader>fg` | Search for text across all files |
+| `<leader>fw` | Search for the word currently under the cursor |
+| `<leader>fb` | Switch between currently open files |
+| `<leader>fr` | Reopen a recently used file |
+| `<leader>fh` | Search Neovim's built-in help |
+| `<leader>fs` | List all functions/variables in the current file |
+| `<leader>fd` | List all errors/warnings in the project |
+
+### Understanding and editing code (LSP) — *code*
+
+Works when a language server is running for the file. Neovim also has these built in: `grr` (find where something is used), `grn` (rename), `gra` (quick fixes), `gri` (go to implementation), `gO` (list symbols), `K` (documentation).
+
+| Key | Action |
+|---|---|
+| `gd` | Jump to where this is **defined** |
+| `gD` | Jump to where this is **declared** |
+| `K` | Show documentation for the item under the cursor |
+| `grr` | Show everywhere this item is used |
+| `gri` | Jump to its implementation |
+| `<leader>rn` | Rename this item everywhere |
+| `<leader>ca` | Show available fixes / actions |
+| `<leader>ld` | Read the full error message on this line |
+| `[d` | Go to the previous error/warning |
+| `]d` | Go to the next error/warning |
+
+### Autocomplete pop-up — *while typing*
+
+| Key | Action |
+|---|---|
+| `<C-Space>` | Open the suggestion list |
+| `<C-y>` | Accept the highlighted suggestion |
+| `<C-e>` | Close the suggestion list |
+| `<C-n>` / `<C-p>` | Move down / up the list |
+
+> Want **Enter** or **Tab** to accept suggestions instead of `<C-y>`? In `init.lua`, change `keymap = { preset = "default" }` (in the blink.cmp section) to `"enter"` or `"super-tab"`.
+
+### Git changes — *git*
+
+Works inside a file that's in a git repository.
+
+| Key | Action |
+|---|---|
+| `]h` | Jump to the next changed block (hunk) |
+| `[h` | Jump to the previous changed block |
+| `<leader>hs` | Stage this change (mark it ready to commit) |
+| `<leader>hr` | Undo this change back to the last saved git version |
+| `<leader>hp` | Preview what changed in this block |
+| `<leader>hb` | Show who last changed this line, with details |
+| `<leader>hB` | Turn the always-on line author display on/off |
+| `<leader>hd` | Show all changes in the current file |
+
+### Debugging (C, C++, Go)
+
+See [Debugging: how to use](#debugging-how-to-use) for step-by-step instructions.
+
+| Key | Action |
+|---|---|
+| `<F5>` | Start debugging, or continue to the next breakpoint |
+| `<F10>` | Step over (run the next line) |
+| `<F11>` | Step into (go inside the function call) |
+| `<F12>` | Step out (finish the current function) |
+| `<leader>db` | Add or remove a breakpoint on this line |
+| `<leader>dB` | Add a breakpoint that only triggers under a condition |
+| `<leader>dr` | Open the debug prompt (REPL) |
+| `<leader>dl` | Re-run the last debug session |
+| `<leader>dq` | Stop debugging and close the debug panels |
+| `<leader>du` | Show / hide the debug panels |
+| `<leader>dc` | **C++ only**: compile, then start debugging automatically |
+| `<leader>dg` | **Go only**: debug the current file |
+
+### Debugging (Java)
+
+Java uses `jdb`, a text-based debugger that opens in a terminal.
+
+| Key | Action |
+|---|---|
+| `<leader>dj` | Debug — automatically detects Maven, Gradle, or a single file |
+| `<leader>dJ` | Debug the current single `.java` file |
+
+### Running and building (task runner)
+
+| Key | Action |
+|---|---|
+| `<leader>or` | Open the list of run/build tasks and pick one |
+| `<leader>ot` | Show / hide the task output panel |
+
+### Terminal
+
+| Key | Action |
+|---|---|
+| `<C-\>` | Open / close a floating terminal window |
+
+---
+
+## Running and building code (tasks)
+
+Press `<leader>or` to open a menu of ready-made commands ("tasks"). The menu only shows tasks that make sense for the file or project you're in, so you won't be overwhelmed. Pick one and it runs; press `<leader>ot` to see its output.
+
+| Task | Shows up when | What it does |
+|---|---|---|
+| C++ build & run | editing a `.cpp` file | Compiles the file and immediately runs it |
+| C++ build (debug) | editing a `.cpp` file | Compiles with debug info (used by the debugger) |
+| Go run (file) | editing a `.go` file | Runs just this file |
+| Go run (package) | editing a `.go` file | Runs the whole folder as a program |
+| Go test (package) | editing a `.go` file | Runs the project's tests |
+| Go build | editing a `.go` file | Compiles the whole project |
+| Java run (single file) | editing a `.java` file | Runs a single Java file directly (Java 11+) |
+| Java compile & run | editing a `.java` file | Compiles then runs the file |
+| Gradle build / run / test | project has a `build.gradle` | Runs the matching Gradle command |
+| Maven package / test / run | project has a `pom.xml` | Runs the matching Maven command |
+
+For Gradle and Maven, if the project includes a wrapper script (`gradlew` or `mvnw`) it's used automatically; otherwise the globally installed `gradle`/`mvn` is used.
+
+---
+
+## Debugging: how to use
+
+**Debugging** lets you pause your running program and look inside it to find bugs. The general idea is the same everywhere: put a **breakpoint** on a line, start the program, and it pauses there so you can look around and step through line by line.
+
+For **C/C++** and **Go**, a set of debug panels (showing variables, the call stack, and breakpoints) **opens automatically** when you start, and closes when you stop. **Java** is different — it uses a text prompt in a terminal.
+
+### C / C++
+
+1. Open a `.c` or `.cpp` file. Put your cursor on a line and press `<leader>db` to set a breakpoint (a red dot appears in the gutter).
+2. Start it one of two ways:
+   - **Recommended:** `<leader>dc` — it compiles a debug build for you, then starts the debugger automatically.
+   - `<F5>` — choose the *Launch* option; you'll be asked for the path to an already-compiled program (it suggests the current file's name without its extension).
+3. When it pauses at your breakpoint, step through with `<F10>` (next line), `<F11>` (go into a function), `<F12>` (finish the function). Watch the variables in the panels, or type expressions at the prompt with `<leader>dr`.
+4. Press `<leader>dq` to stop and close everything. `<leader>du` shows/hides the panels manually.
+
+### Go
+
+1. Open a `.go` file and set a breakpoint with `<leader>db`.
+2. Start debugging:
+   - `<leader>dg` — quickly debug the current file.
+   - `<F5>` — pick from four options: debug the current file, the whole package (folder), the current test file, or the package's tests.
+3. Go compiles and runs automatically — there's no separate build step. Step through and inspect exactly as with C/C++, and stop with `<leader>dq`.
+
+> Go debugging needs the **Delve** tool (`dlv`) installed — see [external tools](#external-tools-you-need-to-install).
+
+### Java
+
+1. Press `<leader>dj`. It figures out your project automatically: a Maven project, a Gradle project, or a single file. (`<leader>dJ` forces single-file mode.)
+2. What happens:
+   - **Single file:** it compiles your file and drops you into the `jdb` prompt.
+   - **Maven/Gradle project:** it opens two terminal panes — your program (paused, waiting) and the `jdb` debugger attaching to it.
+3. Control it by typing commands at the `jdb` prompt:
+
+| Type this | To do this |
+|---|---|
+| `stop at MyClass:42` | Set a breakpoint at line 42 |
+| `stop in MyClass.main` | Break when a method is entered |
+| `run` | Start the program (single-file mode) |
+| `cont` | Continue running (attach mode) |
+| `step` | Run the next line, going into functions |
+| `next` | Run the next line, skipping over functions |
+| `locals` | Show the current local variables |
+| `print x` | Show the value of `x` |
+| `exit` | Quit the debugger |
+
+---
+
+## Plugins and what each one does
+
+Plugins are the add-ons that provide all the features above. You don't install these by hand — they download automatically. Listed here so you know what each is responsible for.
+
+| Plugin | What it provides |
+|---|---|
+| [lazy.nvim](https://github.com/folke/lazy.nvim) | The plugin manager — installs and updates everything else |
+| [catppuccin/nvim](https://github.com/catppuccin/nvim) | The colour theme (Mocha) |
+| [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) | The status bar at the bottom |
+| [alpha-nvim](https://github.com/goolord/alpha-nvim) | The welcome screen shown when you open Neovim |
+| [nvim-notify](https://github.com/rcarriga/nvim-notify) | Nice pop-up notifications |
+| [bufferline.nvim](https://github.com/akinsho/bufferline.nvim) | The tabs for open files across the top |
+| [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Accurate syntax colouring, indenting, and code folding |
+| [nvim-dap](https://github.com/mfussenegger/nvim-dap) | The core debugger engine |
+| [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) | The debugger panels (variables, call stack, breakpoints) |
+| [nvim-nio](https://github.com/nvim-neotest/nvim-nio) | A helper library the debugger UI needs |
+| [nvim-tree.lua](https://github.com/nvim-tree/nvim-tree.lua) | The file explorer sidebar |
+| [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) | The file-type icons (needs a Nerd Font) |
+| [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) | Connects Neovim to the language servers |
+| [mason.nvim](https://github.com/mason-org/mason.nvim) | Installs the language servers and tools for you |
+| [mason-lspconfig.nvim](https://github.com/mason-org/mason-lspconfig.nvim) | Links Mason and lspconfig together automatically |
+| [blink.cmp](https://github.com/saghen/blink.cmp) | The autocomplete pop-up |
+| [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) | The fuzzy finder (find files, search text) |
+| [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) | A helper library Telescope needs |
+| [telescope-fzf-native.nvim](https://github.com/nvim-telescope/telescope-fzf-native.nvim) | Makes the fuzzy finder much faster |
+| [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) | Git marks in the gutter, blame, staging |
+| [overseer.nvim](https://github.com/stevearc/overseer.nvim) | The task runner (build/run/test) |
+| [conform.nvim](https://github.com/stevearc/conform.nvim) | Auto-formats your code on save |
+| [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) | The pop-up terminal |
+| [which-key.nvim](https://github.com/folke/which-key.nvim) | The pop-up that shows available shortcuts as you type |
+| [nvim-autopairs](https://github.com/windwp/nvim-autopairs) | Auto-closes brackets and quotes |
+| [nvim-surround](https://github.com/kylechui/nvim-surround) | Quickly add/change/remove quotes or brackets around text |
+| [indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim) | Faint vertical lines showing indentation |
+
+**Code tidiers used on save:** `clang-format` (C/C++), `goimports` + `gofmt` (Go), `stylua` (Lua).
+
+**Language helpers installed automatically by Mason:** `lua_ls` (Lua), `gopls` (Go), `clangd` (C/C++), `jdtls` (Java).
+
+---
+
+## External tools you need to install
+
+These are separate programs Neovim uses but does **not** install itself. Install only the ones for the languages you use. On a Mac, most are installed with **Homebrew** (`brew`). If you don't have Homebrew, get it from <https://brew.sh>.
+
+| Tool | Needed for | Install command (Mac) |
+|---|---|---|
+| Git | Downloading plugins, git features | `xcode-select --install` or `brew install git` |
+| A Nerd Font | Icons everywhere | [See the next section](#nerd-font-jetbrains-mono) |
+| Xcode Command Line Tools | C/C++ debugging + some builds | `xcode-select --install` |
+| `g++` / `clang++` | Compiling C++ | Comes with Xcode tools (or `brew install gcc`) |
+| Go | Running/building Go | `brew install go` |
+| Delve (`dlv`) | **Debugging** Go | `brew install delve` |
+| Java (JDK 17+) | Running/debugging Java | `brew install openjdk` |
+| Maven | Java Maven projects | `brew install maven` |
+| Gradle | Java Gradle projects | `brew install gradle` |
+| `clang-format` | Auto-formatting C/C++ | `brew install clang-format` |
+| `stylua` | Auto-formatting Lua | `brew install stylua` |
+| Node.js *(optional)* | Some language tools | `brew install node` |
+
+> After installing, you may need to open a **new terminal window** for the tool to be found. To check a tool is installed, type its name and `--version` (for example `go version` or `java -version`).
+
+---
+
+## Nerd Font (JetBrains Mono)
+
+Many things in this setup (file icons, the status bar, tabs) use special icon symbols. These only display correctly with a **Nerd Font** installed. Without one, you'll see empty boxes or question marks where icons should be. This config is set up for **JetBrains Mono Nerd Font**.
+
+**Download it:**
+
+- Direct download (zip): <https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip>
+- Browse all Nerd Fonts: <https://github.com/ryanoasis/nerd-fonts/releases>
+
+**Install it manually on a Mac:**
+
+1. Download and unzip `JetBrainsMono.zip` (double-click the downloaded file to unzip it).
+2. Open the unzipped folder, select all the `.ttf` font files, then **right-click → Open** and click **Install Font** in the window that appears. (This adds them to Font Book, Mac's font manager.)
+
+   *Prefer the terminal? Run:*
+   ```sh
+   unzip ~/Downloads/JetBrainsMono.zip -d ~/Downloads/JetBrainsMono
+   cp ~/Downloads/JetBrainsMono/*.ttf ~/Library/Fonts/
+   ```
+3. Tell your terminal to use the new font:
+   - **Apple Terminal:** Settings → Profiles → Text → Font → choose *JetBrainsMono Nerd Font*
+   - **iTerm2:** Settings → Profiles → Text → Font → choose *JetBrainsMono Nerd Font*
+   - **Ghostty:** add `font-family = "JetBrainsMono Nerd Font"` to its config file
+   - **WezTerm / Kitty:** set the font family in their config files
+4. Fully quit and reopen the terminal, then start Neovim again.
+
+**Easiest option (with Homebrew):**
+```sh
+brew install --cask font-jetbrains-mono-nerd-font
+```
+Then just set your terminal font as in step 3.
+
+**Check it worked:** run this in your terminal —
+```sh
+echo -e "  "
+```
+If you see small icons (a house and folders) instead of boxes or question marks, the font is working.
+
+---
+
+## Troubleshooting
+
+| Problem | Likely fix |
+|---|---|
+| Icons show as boxes or `?` | The Nerd Font isn't installed or isn't selected as your terminal font — see the section above |
+| A shortcut does nothing | Make sure you're in **Normal mode** (press `Esc`), and remember `<leader>` is the **backslash `\`** key |
+| Autocomplete / errors not working in a file | The language server may still be installing — check with `:Mason`, and run `:checkhealth` |
+| "command not found" when running/debugging | The language's [external tool](#external-tools-you-need-to-install) isn't installed or isn't on your PATH — open a new terminal after installing |
+| Go debugging won't start | Install Delve: `brew install delve` |
+| Plugins look broken after an update | Run `:Lazy sync`, then restart Neovim |
+| I forget the shortcuts | Press the leader key (`\`) and wait — a menu of options pops up |
