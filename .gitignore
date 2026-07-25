@@ -1,1 +1,5 @@
-lazy-lock.json
+*
+!init.lua
+!LUA_HANDBOOK.md
+!README.md
+!.gitignore
