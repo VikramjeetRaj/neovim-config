@@ -18,9 +18,10 @@ This is the complete guide to this Neovim setup. It's written so that **anyone c
 8. [Running and building code (tasks)](#running-and-building-code-tasks)
 9. [Debugging: how to use](#debugging-how-to-use)
 10. [Plugins and what each one does](#plugins-and-what-each-one-does)
-11. [External tools you need to install](#external-tools-you-need-to-install)
-12. [Nerd Font (JetBrains Mono)](#nerd-font-jetbrains-mono)
-13. [Troubleshooting](#troubleshooting)
+11. [How the configuration is organised (file layout)](#how-the-configuration-is-organised-file-layout)
+12. [External tools you need to install](#external-tools-you-need-to-install)
+13. [Nerd Font (JetBrains Mono)](#nerd-font-jetbrains-mono)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -92,7 +93,7 @@ Shortcuts are written using a few conventions:
 
 **How to type a shortcut like `<leader>ff`:** make sure you're in **Normal mode** (press `Esc` first if unsure), then press the keys in order — `\`, then `f`, then `f` — reasonably quickly.
 
-> **About the leader key:** this config uses the default leader, which is the **backslash `\`**. Many people prefer the **Spacebar**. To switch, add this line near the top of `init.lua`: `vim.g.mapleader = " "`. After that, every `<leader>` shortcut below is triggered with Space instead of backslash.
+> **About the leader key:** this config uses the default leader, which is the **backslash `\`**. Many people prefer the **Spacebar**. To switch, add this line to `lua/config/options.lua`: `vim.g.mapleader = " "`. After that, every `<leader>` shortcut below is triggered with Space instead of backslash.
 
 > **Helpful:** if you press the leader key and pause, a **pop-up menu** (which-key) appears showing every shortcut available next. You don't have to memorise anything.
 
@@ -216,7 +217,7 @@ Works when a language server is running for the file. Neovim also has these buil
 | `<C-e>` | Close the suggestion list |
 | `<C-n>` / `<C-p>` | Move down / up the list |
 
-> Want **Enter** or **Tab** to accept suggestions instead of `<C-y>`? In `init.lua`, change `keymap = { preset = "default" }` (in the blink.cmp section) to `"enter"` or `"super-tab"`.
+> Want **Enter** or **Tab** to accept suggestions instead of `<C-y>`? In `lua/plugins/completion.lua`, change `keymap = { preset = "default" }` to `"enter"` or `"super-tab"`.
 
 ### Git changes — *git*
 
@@ -381,6 +382,55 @@ Plugins are the add-ons that provide all the features above. You don't install t
 **Code tidiers used on save:** `clang-format` (C/C++), `goimports` + `gofmt` (Go), `stylua` (Lua).
 
 **Language helpers installed automatically by Mason:** `lua_ls` (Lua), `gopls` (Go), `clangd` (C/C++), `jdtls` (Java).
+
+---
+
+## How the configuration is organised (file layout)
+
+The config used to live in one large `init.lua`. It's now split into small, single-purpose files so each piece is easy to find and edit. You don't need to understand any of this to *use* the editor — it only matters if you want to change something.
+
+`init.lua` is now tiny: it bootstraps the plugin manager, loads the three core-settings files, then automatically loads every file in `lua/plugins/`.
+
+```
+~/.config/nvim/
+├── init.lua                     Entry point: bootstrap + load everything below
+├── lua/
+│   ├── config/                  Your personal settings (not plugins)
+│   │   ├── options.lua          Editor behaviour (line numbers, indenting, autosave timing, …)
+│   │   ├── keymaps.lua          General shortcuts (buffer switching, close buffer)
+│   │   ├── autocmds.lua         Automatic actions (autosave, tabs-vs-spaces per language)
+│   │   ├── util.lua             Small shared helper functions used by the two files below
+│   │   ├── overseer_tasks.lua   All the build / run / test task definitions (the task runner)
+│   │   └── dap_config.lua       Go and Java debugger setup
+│   └── plugins/                 One file per plugin (or group); loaded automatically
+│       ├── colorscheme.lua      Catppuccin theme
+│       ├── ui.lua               Status bar, tabs, welcome screen, notifications, which-key, indent guides
+│       ├── treesitter.lua       Syntax colouring / folding
+│       ├── explorer.lua         File-tree sidebar
+│       ├── telescope.lua        Fuzzy finder
+│       ├── lsp.lua              Language servers (Mason + lspconfig)
+│       ├── completion.lua       Autocomplete pop-up (blink.cmp)
+│       ├── dap.lua             Debugger engine + UI, and C/C++ debugging
+│       ├── overseer.lua         Task-runner plugin (loads the tasks from config/overseer_tasks.lua)
+│       ├── conform.lua          Format-on-save
+│       ├── gitsigns.lua         Git marks, blame, staging
+│       ├── toggleterm.lua       Pop-up terminal
+│       └── editing.lua          Auto-pairs and surround
+```
+
+**Where do I change X?**
+
+| I want to change… | Edit this file |
+|---|---|
+| A setting like indentation, line numbers, or autosave | `lua/config/options.lua` |
+| A general shortcut (e.g. how to switch or close files) | `lua/config/keymaps.lua` |
+| Autosave / format-on-save behaviour rules | `lua/config/autocmds.lua` |
+| A build/run/test task, or add a new one | `lua/config/overseer_tasks.lua` |
+| How Go or Java debugging launches | `lua/config/dap_config.lua` |
+| A specific plugin's options | the matching file in `lua/plugins/` |
+| Add a brand-new plugin | create a new file in `lua/plugins/` that returns its spec |
+
+> **Adding a new plugin:** drop a file like `lua/plugins/myplugin.lua` that `return`s a lazy.nvim spec table. It's picked up automatically — no need to edit `init.lua`.
 
 ---
 

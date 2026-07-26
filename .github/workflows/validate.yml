@@ -1,15 +1,17 @@
-name: Validate init.lua
+name: Validate Neovim config
 
 # Verifies that the Neovim config is syntactically valid and loads cleanly.
 on:
   push:
     paths:
       - "init.lua"
+      - "lua/**"
       - "lazy-lock.json"
       - ".github/workflows/validate.yml"
   pull_request:
     paths:
       - "init.lua"
+      - "lua/**"
       - "lazy-lock.json"
       - ".github/workflows/validate.yml"
   workflow_dispatch: {}
@@ -24,9 +26,19 @@ jobs:
       - name: Install LuaJIT (Neovim's Lua runtime)
         run: sudo apt-get update && sudo apt-get install -y luajit
 
-      - name: Parse init.lua (fails on syntax errors)
+      - name: Parse all Lua files (fails on syntax errors)
         run: |
-          luajit -e "assert(loadfile('init.lua'))" && echo "init.lua parsed OK"
+          err=0
+          while IFS= read -r f; do
+            if luajit -e "assert(loadfile([[$f]]))"; then
+              echo "OK   $f"
+            else
+              echo "FAIL $f"
+              err=1
+            fi
+          done < <(find init.lua lua -name '*.lua')
+          [ "$err" -eq 0 ] && echo "All Lua files parsed OK"
+          exit "$err"
 
   nvim-load:
     name: Headless Neovim load
@@ -53,6 +65,8 @@ jobs:
           export XDG_CACHE_HOME="$PWD/.ci/cache"
           mkdir -p "$XDG_CONFIG_HOME/nvim"
           cp init.lua "$XDG_CONFIG_HOME/nvim/init.lua"
+          # Copy the whole module tree so require("config.*") / require("plugins.*") resolve.
+          [ -d lua ] && cp -r lua "$XDG_CONFIG_HOME/nvim/lua"
           [ -f lazy-lock.json ] && cp lazy-lock.json "$XDG_CONFIG_HOME/nvim/lazy-lock.json" || true
 
           # Install/resolve every plugin spec synchronously.
