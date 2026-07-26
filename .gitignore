@@ -1,5 +1,2 @@
-*
-!init.lua
-!LUA_HANDBOOK.md
-!README.md
-!.gitignore
+lazy-lock.json
+.DS_Store
