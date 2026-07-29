@@ -52,6 +52,14 @@ return {
 				cwd = "${workspaceFolder}",
 				stopOnEntry = false,
 				args = {},
+				-- Feed input.txt to the program's stdin while debugging, if present.
+				-- Evaluated at launch time (functions are resolved by nvim-dap).
+				stdio = function()
+					return require("config.util").lldb_stdin_fields().stdio
+				end,
+				preRunCommands = function()
+					return require("config.util").lldb_stdin_fields().preRunCommands
+				end,
 			},
 		}
 		dap.configurations.c = dap.configurations.cpp

@@ -20,7 +20,7 @@ vim.opt.clipboard = "unnamedplus"
 
 -- Line Number
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 
 -- Core editor settings
 vim.opt.signcolumn = "yes" -- avoid layout shift from git/diagnostic signs
@@ -32,10 +32,12 @@ vim.opt.splitbelow = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true -- case-sensitive only when the query has a capital
 vim.opt.undofile = true -- persistent undo across sessions
-vim.opt.expandtab = true
-vim.opt.tabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.smartindent = true
+vim.opt.expandtab = true -- Tab inserts spaces, never a real tab character
+vim.opt.tabstop = 8 -- a tab is displayed as 8 spaces
+vim.opt.shiftwidth = 8 -- >> / << and auto-indent use 8 spaces
+vim.opt.softtabstop = 8 -- Tab / Backspace move by a full 8-space step (JetBrains-like)
+vim.opt.autoindent = true -- keep the current line's indent on the next line (Enter)
+vim.opt.smartindent = true -- add an extra indent level after `{`, etc.
 
 -- Autosave (JetBrains-style): save on insert-leave, text change, buffer/focus loss
 vim.opt.updatetime = 1000

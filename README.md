@@ -111,6 +111,8 @@ The most common things you'll want, in plain English. Full lists are further dow
 | Show or hide the file explorer sidebar | `<leader>e` |
 | Go to the next / previous open file | `<S-l>` / `<S-h>` |
 | Close the current file | `<leader>x` |
+| Move between side-by-side windows | `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` |
+| Split the screen vertically / horizontally | `<leader>sv` / `<leader>sh` |
 | Open a terminal | `<C-\>` |
 | See documentation for the thing under my cursor | `K` |
 | Jump to where a function/variable is defined | `gd` |
@@ -145,18 +147,18 @@ These are on automatically — no shortcuts needed. Listed so you know why the e
 
 | Setting | What you'll notice |
 |---|---|
-| Line numbers (absolute + relative) | Numbers down the left; the current line shows its real number, others count distance from it |
+| Line numbers (absolute) | Each line shows its real line number down the left |
 | Always-visible gutter | The left strip never jumps around when errors or git marks appear |
 | Cursor line highlight | The line you're on is subtly highlighted |
 | No line wrapping | Long lines run off-screen instead of wrapping |
 | Smart-case search | Searching is case-insensitive unless you type a capital letter |
 | Persistent undo | You can undo changes **even after closing and reopening** a file |
-| 4-space indentation | Uses 4 spaces (switches to real tabs automatically for Go and Makefiles, which require them) |
+| 8-space indentation (JetBrains-style) | Tab inserts 8 spaces; pressing Enter carries the current indent onto the next line, and Tab/Backspace move a whole 8-space step at a time (switches to real tabs automatically for Go and Makefiles, which require them) |
 | System clipboard shared | Copy in Neovim, paste in other apps, and vice-versa |
 | Mouse off | The editor is keyboard-only by design |
 | Code folding | You can collapse blocks of code (via Treesitter); everything starts expanded |
 | **Autosave** | Your file saves itself when you leave insert mode, change text, or switch away — like an IDE |
-| **Format on save** | Code is automatically tidied every time it saves |
+| **Format on save** | Code is automatically tidied every time it saves — the formatters use an 8-space indent to match the editor, so saving never rewrites your indentation width |
 
 ---
 
@@ -171,6 +173,24 @@ Grouped by what you're doing. Some shortcuts (marked *code* or *git*) only work 
 | `<S-l>` | Go to the next open file |
 | `<S-h>` | Go to the previous open file |
 | `<leader>x` | Close the current file |
+
+### Moving between windows (splits)
+
+A "window" is one pane on screen. You can show several files side by side by splitting, then hop between them without the mouse.
+
+| Key | Action |
+|---|---|
+| `<C-h>` | Move to the window on the left |
+| `<C-j>` | Move to the window below |
+| `<C-k>` | Move to the window above |
+| `<C-l>` | Move to the window on the right |
+| `<leader>sv` | Split the current window vertically (side by side) |
+| `<leader>sh` | Split the current window horizontally (top / bottom) |
+| `<leader>se` | Make all windows equal size |
+| `<leader>sc` | Close the current window |
+| `<leader>so` | Close every window except the current one |
+| `<C-Up>` / `<C-Down>` | Make the window taller / shorter |
+| `<C-Left>` / `<C-Right>` | Make the window narrower / wider |
 
 ### File explorer
 
@@ -210,14 +230,18 @@ Works when a language server is running for the file. Neovim also has these buil
 
 ### Autocomplete pop-up — *while typing*
 
+The suggestion list pops up automatically as you type, with the top item
+previewed inline as faint "ghost text".
+
 | Key | Action |
 |---|---|
-| `<C-Space>` | Open the suggestion list |
-| `<C-y>` | Accept the highlighted suggestion |
+| `Tab` or `Enter` | Accept the highlighted suggestion |
+| `Tab` | Also jumps between fields inside a snippet |
+| `<C-Space>` | Open / toggle the suggestion list |
 | `<C-e>` | Close the suggestion list |
 | `<C-n>` / `<C-p>` | Move down / up the list |
 
-> Want **Enter** or **Tab** to accept suggestions instead of `<C-y>`? In `lua/plugins/completion.lua`, change `keymap = { preset = "default" }` to `"enter"` or `"super-tab"`.
+> Prefer `<C-y>`-only acceptance instead of Tab/Enter? In `lua/plugins/completion.lua`, change `keymap = { preset = "super-tab", ... }` back to `preset = "default"`.
 
 ### Git changes — *git*
 
@@ -283,7 +307,7 @@ Press `<leader>or` to open a menu of ready-made commands ("tasks"). The menu onl
 
 | Task | Shows up when | What it does |
 |---|---|---|
-| C++ build & run | editing a `.cpp` file | Compiles the file and immediately runs it |
+| C++ build & run | editing a `.cpp` file | Compiles the file and runs it. If an `input.txt` exists next to the source **or** in the working directory, it's fed to the program's `cin`; the output shows which file was used (or that none was found). Runs with no input if there isn't one |
 | C++ build (debug) | editing a `.cpp` file | Compiles with debug info (used by the debugger) |
 | Go run (file) | editing a `.go` file | Runs just this file |
 | Go run (package) | editing a `.go` file | Runs the whole folder as a program |
@@ -312,6 +336,8 @@ For **C/C++** and **Go**, a set of debug panels (showing variables, the call sta
    - `<F5>` — choose the *Launch* option; you'll be asked for the path to an already-compiled program (it suggests the current file's name without its extension).
 3. When it pauses at your breakpoint, step through with `<F10>` (next line), `<F11>` (go into a function), `<F12>` (finish the function). Watch the variables in the panels, or type expressions at the prompt with `<leader>dr`.
 4. Press `<leader>dq` to stop and close everything. `<leader>du` shows/hides the panels manually.
+
+> **Feeding input while debugging:** just like the run task, if an `input.txt` sits next to your source file (or in the working directory), it's fed to the program's `cin` during a debug session, so you don't have to type input by hand. This relies on your `lldb-dap` version supporting stdin redirection — if input isn't picked up, see the note in the changelog.
 
 ### Go
 
@@ -356,8 +382,8 @@ Plugins are the add-ons that provide all the features above. You don't install t
 | [lualine.nvim](https://github.com/nvim-lualine/lualine.nvim) | The status bar at the bottom |
 | [alpha-nvim](https://github.com/goolord/alpha-nvim) | The welcome screen shown when you open Neovim |
 | [nvim-notify](https://github.com/rcarriga/nvim-notify) | Nice pop-up notifications |
-| [bufferline.nvim](https://github.com/akinsho/bufferline.nvim) | The tabs for open files across the top |
-| [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Accurate syntax colouring, indenting, and code folding |
+| [bufferline.nvim](https://github.com/akinsho/bufferline.nvim) | The tabs for open files across the top — slanted tabs with colored filetype icons, close buttons, and inline error/warning badges |
+| [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) | Accurate syntax colouring and code folding (its experimental auto-indent is disabled; Neovim's built-in indenters handle indentation) |
 | [nvim-dap](https://github.com/mfussenegger/nvim-dap) | The core debugger engine |
 | [nvim-dap-ui](https://github.com/rcarriga/nvim-dap-ui) | The debugger panels (variables, call stack, breakpoints) |
 | [nvim-nio](https://github.com/nvim-neotest/nvim-nio) | A helper library the debugger UI needs |
@@ -379,7 +405,7 @@ Plugins are the add-ons that provide all the features above. You don't install t
 | [nvim-surround](https://github.com/kylechui/nvim-surround) | Quickly add/change/remove quotes or brackets around text |
 | [indent-blankline.nvim](https://github.com/lukas-reineke/indent-blankline.nvim) | Faint vertical lines showing indentation |
 
-**Code tidiers used on save:** `clang-format` (C/C++), `goimports` + `gofmt` (Go), `stylua` (Lua).
+**Code tidiers used on save:** `clang-format` (C/C++), `goimports` + `gofmt` (Go), `stylua` (Lua). `clang-format` and `stylua` are set to an 8-space indent to match the editor; Go keeps its conventional tabs.
 
 **Language helpers installed automatically by Mason:** `lua_ls` (Lua), `gopls` (Go), `clangd` (C/C++), `jdtls` (Java).
 
@@ -508,3 +534,112 @@ If you see small icons (a house and folders) instead of boxes or question marks,
 | Go debugging won't start | Install Delve: `brew install delve` |
 | Plugins look broken after an update | Run `:Lazy sync`, then restart Neovim |
 | I forget the shortcuts | Press the leader key (`\`) and wait — a menu of options pops up |
+
+---
+
+## Changelog
+
+All changes to this configuration are logged here, newest first.
+
+### 2026-07-26 (input.txt stdin for C++ debug)
+- Extended the `input.txt` stdin convention to C++ debugging. Added
+  `find_input_txt()` and `lldb_stdin_fields()` helpers in `lua/config/util.lua`,
+  and wired them into both debug entry points: the `<F5>` *Launch* config in
+  `lua/plugins/dap.lua` and the `<leader>dc` build-and-debug flow in
+  `lua/config/overseer_tasks.lua`. When an `input.txt` exists next to the source
+  or in the cwd, it's fed to the debugged program's stdin.
+- Because lldb-dap's stdin redirection differs by version, both mechanisms are
+  set: `stdio` (lldb-dap >= 22.0) and a `settings set target.input-path ...`
+  `preRunCommand` (older lldb-dap, e.g. the one from Xcode via `xcrun -f
+  lldb-dap`). Verified the lldb-dap config keys against the official README; the
+  `stdio` key is documented as added in v22.0, which is why the `target.input-path`
+  fallback is included. Go (delve) and Java (jdb, interactive terminal) were left
+  as-is since their stdin models differ. If input still isn't read while
+  debugging, check `lldb-dap --version`; the fallback covers older versions but
+  behavior can vary.
+
+### 2026-07-26 (merge C++ run tasks)
+- Folded the `input.txt` stdin handling into the main `C++ build & run` task and
+  removed the separate `C++ build & run (input.txt)` template in
+  `lua/config/overseer_tasks.lua`. Having two near-identical entries meant the
+  plain one (no stdin redirection) was easy to pick by mistake. Now there's a
+  single task that always checks for `input.txt` (next to the source or in the
+  cwd) and prints which file it used. Note: task templates register when Overseer
+  loads, so restart Neovim after this change for it to take effect.
+
+### 2026-07-26 (fix C++ input.txt not read)
+- The `C++ build & run (input.txt)` task only checked for `input.txt` next to the
+  source file, so an `input.txt` kept in the project root / cwd was silently
+  ignored. Updated `lua/config/overseer_tasks.lua` to set the task `cwd` to the
+  source folder, look for `input.txt` both next to the source and in the cwd, and
+  print a visible `[stdin: ...]` / `[no input.txt found ...]` notice so it's never
+  silent. Verified the shell redirection reads the file correctly.
+
+### 2026-07-26 (fix indent-on-Enter)
+- Disabled Treesitter `indent` in `lua/plugins/treesitter.lua`. It sets
+  `indentexpr`, which overrides `autoindent`/`smartindent` and was preventing the
+  indent from carrying onto the next line when pressing Enter. With it off,
+  Neovim's built-in indenters (e.g. C/C++ `cindent`) handle indentation
+  reliably. Highlighting and folding are unaffected.
+
+### 2026-07-26 (formatter indent width)
+- Fixed "continuing indent not working": the autosave + format-on-save was
+  reformatting with the formatters' own default indent width (clang-format
+  defaults to 2 spaces), overwriting the editor's 8-space indentation on every
+  save. Configured `clang_format` (`IndentWidth: 8, UseTab: Never`) and `stylua`
+  (`--indent-type Spaces --indent-width 8`) in `lua/plugins/conform.lua` to match
+  the editor. Go keeps its conventional tabs. Verified the clang-format style
+  string produces 8-space output. Updated the editor-behaviour and tooling notes
+  in the README.
+
+### 2026-07-26 (tab width doubled to 8)
+- Doubled the indentation width from 4 to 8 in `lua/config/options.lua`
+  (`tabstop`, `shiftwidth`, `softtabstop` all now 8). Updated the
+  editor-behaviour table in the README.
+
+### 2026-07-26 (JetBrains-style indentation)
+- Added `autoindent` and `softtabstop = 4` in `lua/config/options.lua` so
+  pressing Enter carries the current line's indent onto the next line and
+  Tab/Backspace move a full 4-space step. Tab = 4 spaces was already configured
+  (`expandtab`, `tabstop`, `shiftwidth`). Updated the editor-behaviour table in
+  the README.
+
+### 2026-07-26 (C++ stdin from file)
+- Added a `C++ build & run (input.txt)` Overseer task in
+  `lua/config/overseer_tasks.lua`. Since the run output goes to the
+  (non-interactive) quickfix window, this task lets you supply `cin` input from
+  an `input.txt` file next to the source via shell redirection. It only
+  redirects when `input.txt` exists, so programs needing no input still run.
+  Documented in the task-runner table in the README.
+
+### 2026-07-26 (graphical tab bar)
+- Expanded the bufferline setup in `lua/plugins/ui.lua` to make the tab bar more
+  graphical: slanted tab edges (`separator_style = "slant"`), colored filetype
+  icons, per-tab close buttons, an underline indicator on the active tab, inline
+  LSP error/warning badges, roomier tabs, and a titled "File Explorer" offset so
+  tabs clear the nvim-tree sidebar. Updated the plugin table in the README.
+
+### 2026-07-26 (line numbers)
+- Turned off relative line numbering (`vim.opt.relativenumber = false`) in
+  `lua/config/options.lua`; absolute line numbers stay on. Updated the
+  editor-behaviour table in the README to match.
+
+### 2026-07-26 (window navigation)
+- Added window/split keymaps to `lua/config/keymaps.lua` to make moving between
+  panes easier: `<C-h/j/k/l>` jump between windows, `<leader>sv`/`<leader>sh`
+  split vertical/horizontal, `<leader>se` equalize, `<leader>sc` close,
+  `<leader>so` close others, and `<C-arrow>` keys resize.
+- Documented these in the README (new "Moving between windows (splits)" section
+  and two Quick-reference rows).
+
+### 2026-07-26
+- Added a `CLAUDE.md` with the working rule to always log changes in this file.
+- Added this Changelog section to the README.
+
+### 2026-07-26 (later)
+- Reworked `lua/plugins/completion.lua` so autocomplete accepts on **Tab** and
+  **Enter** (was `<C-y>`-only via the `default` preset, which made completion
+  feel broken). Switched to the `super-tab` preset with `<CR>` = accept.
+- Enabled inline **ghost-text** preview, auto-showing menu, and top-item
+  preselect so suggestions visibly complete.
+- Updated the "Autocomplete pop-up" shortcuts table in the README to match.

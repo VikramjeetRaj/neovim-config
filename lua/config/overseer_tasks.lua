@@ -17,6 +17,9 @@ function M.build_and_debug()
 	local overseer = require("overseer")
 	local dap = require("dap")
 	local out = vim.fn.expand("%:p:r")
+	-- Resolve input.txt now (while the C++ buffer is active), since the build
+	-- runs asynchronously and the active buffer may change before it completes.
+	local stdin_fields = require("config.util").lldb_stdin_fields()
 
 	overseer.run_task({ name = "C++ build (debug)" }, function(task)
 		if not task then
@@ -25,7 +28,7 @@ function M.build_and_debug()
 		end
 		task:subscribe("on_complete", function(_, status)
 			if status == overseer.STATUS.SUCCESS then
-				dap.run({
+				dap.run(vim.tbl_extend("error", {
 					name = "Launch (Overseer build)",
 					type = "lldb",
 					request = "launch",
@@ -33,7 +36,7 @@ function M.build_and_debug()
 					cwd = "${workspaceFolder}",
 					stopOnEntry = false,
 					args = {},
-				})
+				}, stdin_fields))
 			else
 				vim.notify("Build failed, not launching debugger", vim.log.levels.ERROR)
 			end
@@ -48,14 +51,35 @@ function M.setup()
 	-- ------------------------------------------------------------------
 	-- C++: build & run / build only (debug)
 	-- ------------------------------------------------------------------
+	-- Single build & run task: compiles, then runs. If an input.txt exists next
+	-- to the source or in the working directory, it's fed to the program's stdin
+	-- (cin). A visible notice prints which file was used, or that none was found
+	-- (in which case the program just runs with no stdin). One task, so there's
+	-- no "wrong" variant to accidentally pick.
 	overseer.register_template({
 		name = "C++ build & run",
 		condition = { filetype = { "cpp" } },
 		builder = function()
 			local file = vim.fn.expand("%:p")
 			local out = vim.fn.expand("%:p:r")
+			local dir = vim.fn.expand("%:p:h")
+			local run = string.format(
+				"g++ -std=c++23 -g -Wall '%s' -o '%s' && "
+					.. "if [ -f '%s/input.txt' ]; then echo '[stdin: %s/input.txt]'; '%s' < '%s/input.txt'; "
+					.. "elif [ -f input.txt ]; then echo \"[stdin: $(pwd)/input.txt]\"; '%s' < input.txt; "
+					.. "else echo '[no input.txt found near source or in cwd; running with no stdin]'; '%s'; fi",
+				file,
+				out,
+				dir,
+				dir,
+				out,
+				dir,
+				out,
+				out
+			)
 			return {
-				cmd = { "sh", "-c", string.format("g++ -std=c++23 -g -Wall '%s' -o '%s' && '%s'", file, out, out) },
+				cmd = { "sh", "-c", run },
+				cwd = dir,
 				components = {
 					{ "on_output_quickfix", open = true },
 					"default",

@@ -59,7 +59,40 @@ return {
 		version = "*",
 		dependencies = "nvim-tree/nvim-web-devicons",
 		config = function()
-			require("bufferline").setup({ options = { numbers = "ordinal" } })
+			require("bufferline").setup({
+				options = {
+					numbers = "ordinal",
+					-- Slanted tab edges for a more graphical look
+					separator_style = "slant",
+					-- Filetype icons, colored per language
+					show_buffer_icons = true,
+					color_icons = true,
+					-- Close buttons on tabs and at the far right
+					show_buffer_close_icons = true,
+					show_close_icon = true,
+					buffer_close_icon = "󰅖",
+					close_icon = "",
+					-- A thick colored bar marks the active tab
+					indicator = { style = "underline" },
+					-- Inline LSP error/warning badges on each tab
+					diagnostics = "nvim_lsp",
+					diagnostics_indicator = function(count, level)
+						local icon = level:match("error") and " " or " "
+						return " " .. icon .. count
+					end,
+					-- Roomier tabs
+					tab_size = 20,
+					-- Keep tabs clear of the file-explorer sidebar with a titled offset
+					offsets = {
+						{
+							filetype = "NvimTree",
+							text = "File Explorer",
+							text_align = "center",
+							separator = true,
+						},
+					},
+				},
+			})
 		end,
 	},
 	{
