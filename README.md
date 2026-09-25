@@ -113,7 +113,7 @@ The most common things you'll want, in plain English. Full lists are further dow
 | Close the current file | `<leader>x` |
 | Move between side-by-side windows | `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` |
 | Split the screen vertically / horizontally | `<leader>sv` / `<leader>sh` |
-| Open a terminal | `<C-\>` |
+| Open / close the bottom terminal | `<C-\>` or `<A-F12>` |
 | See documentation for the thing under my cursor | `K` |
 | Jump to where a function/variable is defined | `gd` |
 | Rename a variable everywhere it's used | `<leader>rn` |
@@ -297,7 +297,15 @@ Java uses `jdb`, a text-based debugger that opens in a terminal.
 
 | Key | Action |
 |---|---|
-| `<C-\>` | Open / close a floating terminal window |
+| `<C-\>` / `<A-F12>` | Show / hide the terminal docked at the bottom (works from inside it too; the shell keeps running while hidden) |
+| `<leader>t1` … `<leader>t4` | Open terminal 1–4 — each is its own shell, shown as a tab ("Local", "Local (2)") along the top of the panel; click a tab to switch |
+| `<leader>tf` | Open a floating terminal instead |
+| `<leader>ta` | Show / hide all terminals |
+| `<leader>ts` | Pick a terminal from a list |
+| `<Esc><Esc>` | (inside a terminal) go to normal mode so you can scroll / copy |
+| `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | (inside a terminal) jump to the neighbouring window |
+
+> `<A-F12>` is `Option+F12` on macOS (IntelliJ's terminal shortcut). It works in Neovide; in Terminal.app / iTerm2 you may need to set Option to act as Alt/Esc+, otherwise use `<C-\>`.
 
 ---
 
@@ -399,7 +407,7 @@ Plugins are the add-ons that provide all the features above. You don't install t
 | [gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim) | Git marks in the gutter, blame, staging |
 | [overseer.nvim](https://github.com/stevearc/overseer.nvim) | The task runner (build/run/test) |
 | [conform.nvim](https://github.com/stevearc/conform.nvim) | Auto-formats your code on save |
-| [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) | The pop-up terminal |
+| [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) | The IntelliJ-style bottom terminal panel |
 | [which-key.nvim](https://github.com/folke/which-key.nvim) | The pop-up that shows available shortcuts as you type |
 | [nvim-autopairs](https://github.com/windwp/nvim-autopairs) | Auto-closes brackets and quotes |
 | [nvim-surround](https://github.com/kylechui/nvim-surround) | Quickly add/change/remove quotes or brackets around text |
@@ -440,7 +448,7 @@ The config used to live in one large `init.lua`. It's now split into small, sing
 │       ├── overseer.lua         Task-runner plugin (loads the tasks from config/overseer_tasks.lua)
 │       ├── conform.lua          Format-on-save
 │       ├── gitsigns.lua         Git marks, blame, staging
-│       ├── toggleterm.lua       Pop-up terminal
+│       ├── toggleterm.lua       Bottom terminal panel (IntelliJ-style)
 │       └── editing.lua          Auto-pairs and surround
 ```
 
@@ -540,6 +548,19 @@ If you see small icons (a house and folders) instead of boxes or question marks,
 ## Changelog
 
 All changes to this configuration are logged here, newest first.
+
+### 2026-09-25 (IntelliJ-style terminal)
+- Reworked `lua/plugins/toggleterm.lua` so the terminal behaves like IntelliJ's
+  Terminal tool window: it now docks at the bottom (`direction = "horizontal"`,
+  ~30% of the screen) instead of floating, and shows a tab strip ("Local",
+  "Local (2)", ...) via toggleterm's `winbar`.
+- Added `<A-F12>` (IntelliJ's shortcut) alongside the existing `<C-\>` toggle,
+  `<leader>t1`..`<leader>t4` for separate shell sessions, `<leader>tf` for a
+  floating terminal, `<leader>ta` toggle-all and `<leader>ts` picker.
+- Inside a terminal: `<Esc><Esc>` returns to normal mode and `<C-h/j/k/l>` move
+  between windows. Terminal buffers are already skipped by autosave.
+- Updated the Terminal shortcuts table, Quick-reference row, plugin table and
+  file-layout entry in this README.
 
 ### 2026-07-26 (input.txt stdin for C++ debug)
 - Extended the `input.txt` stdin convention to C++ debugging. Added
