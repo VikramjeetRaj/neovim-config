@@ -486,6 +486,7 @@ These are separate programs Neovim uses but does **not** install itself. Install
 | `clang-format` | Auto-formatting C/C++ | `brew install clang-format` |
 | `stylua` | Auto-formatting Lua | `brew install stylua` |
 | Node.js *(optional)* | Some language tools | `brew install node` |
+| ripgrep (`rg`) | Fuzzy-finder search (`<leader>fg`, live grep) | Installed automatically by `init.lua` on first launch (via rustup + `cargo install ripgrep`) if missing — no action needed, but `brew install ripgrep` is faster if you'd rather install it yourself first |
 
 > After installing, you may need to open a **new terminal window** for the tool to be found. To check a tool is installed, type its name and `--version` (for example `go version` or `java -version`).
 
@@ -548,6 +549,16 @@ If you see small icons (a house and folders) instead of boxes or question marks,
 ## Changelog
 
 All changes to this configuration are logged here, newest first.
+
+### 2026-10-01 (auto-install ripgrep)
+- `init.lua` now checks for `rg` on startup and, if missing, blocking-installs
+  it: runs the official rustup script (`curl ... | sh -s -- -y`) to get
+  `cargo` if needed, then `cargo install ripgrep`. Errors are reported via
+  `vim.notify` instead of failing silently. This runs synchronously, so the
+  very first launch without `rg` or `cargo` installed will pause for a couple
+  of minutes while the rustup install and `cargo install ripgrep` build
+  complete; subsequent launches skip it once `rg` is found.
+- Added a row for ripgrep to the "External tools you need to install" table.
 
 ### 2026-09-25 (IntelliJ-style terminal)
 - Reworked `lua/plugins/toggleterm.lua` so the terminal behaves like IntelliJ's
