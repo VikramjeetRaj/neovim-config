@@ -1,0 +1,10 @@
+" Modular Vim port of ~/Desktop/neovim-config. Safe to launch with vim -u /path/vimrc.
+set nocompatible
+let g:vim_config_root = get(g:, 'vim_config_root', fnamemodify(resolve(expand('<sfile>:p')), ':h'))
+execute 'set runtimepath^=' . fnameescape(g:vim_config_root)
+let g:vim_config_data = get(g:, 'vim_config_data', expand('~/.local/share/vim-config'))
+let g:vim_config_state = get(g:, 'vim_config_state', expand('~/.local/state/vim-config'))
+for s:module in ['options', 'plugins', 'keymaps', 'completion', 'finder', 'git', 'terminal', 'tasks', 'debug', 'format', 'ui', 'autocmds']
+        execute 'source ' . fnameescape(g:vim_config_root . '/config/' . s:module . '.vim')
+endfor
+unlet s:module

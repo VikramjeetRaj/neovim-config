@@ -1,0 +1,24 @@
+{
+  "suggest.noselect": false,
+  "suggest.enablePreselect": true,
+  "signature.enable": true,
+  "coc.preferences.formatOnSaveFiletypes": [],
+  "clangd.arguments": [
+    "--background-index"
+  ],
+  "go.goplsOptions": {
+    "analyses": {
+      "unusedparams": true,
+      "nilness": true
+    },
+    "staticcheck": true,
+    "gofumpt": true
+  },
+  "Lua.diagnostics.globals": [
+    "vim"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.telemetry.enable": false,
+  "suggest.enableFloat": true,
+  "snippets.ultisnips.pythonPrompt": false
+}
